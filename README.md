@@ -26,4 +26,16 @@ For each unique pair of `(station, target)`, we train an autoregressive model us
 
 We train a single non-autoregressive `XGBoost` model that takes a one-hot encoded station vector (91 dimensional) and the same time-encoding exogenous variables as our XGBoost regression model as input, and predicts a class integer between 0 and 19 (both inclusive), which corresponds to a configuration of a station. For example, class 0 might correspond to `Available=3, Charging=0, Passive=0, Other=0`.
 
-### ARIMA
+### ARIMA Model
+
+For each unique pair of `(station, target)`, we train an autoregressive ARIMA model with `order=(2,1,1)` (details are explained in the submitted PDF document).
+This model only receives the last 2 values of the previously differenced time series as input (no exogenous variables) and outputs the next value for the particular target.
+
+### Ensemble
+
+Finally, we ensemble the post-processed outputs of the three models described above by computing a weighted average.
+
+
+## Deep Learning Approaches
+
+Additionally, we evaluate state-of-the-art deep learning approaches, namely a [Transformer architecture](https://huggingface.co/docs/transformers/model_doc/time_series_transformer), an LSTM network, and a shallow and deep variant of a feed-forward neural network (i.e., a sequence of dense layers). For each architecture, we train a single model that takes the last `k` target values as input (some variants also receive time information as input) and predicts the next `m` values. We experiment with different values of `m, k` and find that all of these models fail to extrapolate the given time series in a meaningful manner. We hypothesize that the reasons are mainly two-fold: (1) Deep learning models require a sufficiently large and diverse data set to perform well, which was problematic for the given training data, and (2) complex models appear to learn the high-frequency random noise in the time series, which is counterproductive when predicting values for multiple weeks into the future.
